@@ -1,0 +1,106 @@
+Para separar la lógica en otro componente utilizando un hook, puedes crear un nuevo componente personalizado que contenga la lógica de obtener los datos de la API y devolver los resultados. Aquí tienes un ejemplo de cómo podrías hacerlo:
+
+import { useState, useEffect } from "react";
+
+const useAPIFetch = (APIUrl) => {
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch(APIUrl);
+        const data = await response.json();
+        setData(data.results);
+        setLoading(false);
+      } catch (error) {
+        setError(error);
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [APIUrl]);
+
+  return { data, loading, error };
+};
+
+export default useAPIFetch;
+En este ejemplo, creamos un hook personalizado llamado useAPIFetch que acepta la URL de la API como parámetro. Dentro del hook, utilizamos el estado y el efecto de useState y useEffect respectivamente para realizar la solicitud a la API y almacenar los resultados en el estado data. También tenemos estados para controlar el estado de carga (loading) y cualquier error que pueda ocurrir (error).
+
+Luego, puedes utilizar este hook en tus componentes MainRecientes y MainProximamente de la siguiente manera:
+
+import { useState, useEffect } from "react";
+import Card from "./Card";
+import useAPIFetch from "./useAPIFetch";
+
+const APIRecientes =
+  "https://api.themoviedb.org/3/movie/now_playing?api_key=ecbcdcf9044928d12b179d9153f5a269&language=es-VE";
+
+const MainRecientes = () => {
+  const { data: reciente, loading, error } = useAPIFetch(APIRecientes);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error.message}</div>;
+  }
+
+  return (
+    <div className="bg-pag-peliculas">
+      <div className="container py-4">
+        <h3 className="text-center py-3 text-white">Peliculas Recientes</h3>
+        <div className="row">
+          {reciente &&
+            reciente.map((pelicula) => (
+              <Card pelicula={pelicula} key={pelicula.id} />
+            ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default MainRecientes;
+import { useState, useEffect } from "react";
+import Card from "./Card";
+import useAPIFetch from "./useAPIFetch";
+
+const APIProximamente =
+  "https://api.themoviedb.org/3/movie/upcoming?api_key=ecbcdcf9044928d12b179d9153f5a269&language=es-VE";
+
+const MainProximamente = () => {
+  const { data: proximamente, loading, error } = useAPIFetch(APIProximamente);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error.message}</div>;
+  }
+
+  return (
+    <div className="bg-pag-peliculas">
+      <div className="container py-4">
+        <h3 className="text-center py-3 text-white">
+          Peliculas que saldran Próximamente
+        </h3>
+        <div className="row">
+          {proximamente &&
+            proximamente.map((pelicula) => (
+              <Card pelicula={pelicula} key={pelicula.id} />
+            ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default MainProximamente;
+En ambos componentes, importamos el hook useAPIFetch y lo utilizamos para obtener los datos de la API. Luego, verificamos el estado de carga y cualquier error antes de renderizar los resultados en el componente Card.
+
+De esta manera, has separado la lógica de obtener los datos de la API en un hook reutilizable, lo que te permite mantener tus componentes más limpios y organizados.
